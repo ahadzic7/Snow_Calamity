@@ -196,10 +196,10 @@ void x() {
 
         districtMstLengths[k] = districtMstLength;
 
-        printf("MST: ");
-        for (auto el: mst) { printf("%d ", el); }
-        printf("\n Length: %d", districtMstLength);
-        printf("\n\n\n");
+//        printf("MST: ");
+//        for (auto el: mst) { printf("%d ", el); }
+//        printf("\n Length: %d", districtMstLength);
+//        printf("\n\n\n");
 
     }
     int connectionsLength = 0;
@@ -261,10 +261,12 @@ void test() {
 
 int main() {
 
-
-
-
+    clock_t start, end;
+    start = clock();
 
     x();
+    end = clock();
+
+    printf("\nVrijeme izvrsavanja: %f", double ((end - start) / 1000.));
     return 0;
 }
