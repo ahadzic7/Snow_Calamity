@@ -6,6 +6,13 @@
 #include <algorithm>
 #include <string>
 #include <unordered_map>
+#include <stack>
+
+void ciklus(const int &start, const int &end, const std::vector<std::list<std::pair<int, int>>> graph) {
+    //  std::stack<int>
+
+}
+
 
 void print_neighbours_list(int towns, std::vector<std::list<std::pair<int, int>>> graph) {
     printf("Ispis liste susjeda \n\n");
@@ -38,8 +45,9 @@ int main() {
     unsigned int towns, dtowns, roads;
     scanf("%d %d %d", &towns, &dtowns, &roads);
 
-    std::vector<std::list<std::pair<int, int>>> graph(towns);
+    std::string str;
 
+    std::vector<std::list<std::pair<int, int>>> graph(towns);
 
 //    printf("Pocelo\n");
 
@@ -53,7 +61,7 @@ int main() {
 
     }
 
-//    print_neighbours_list(towns, graph);
+    print_neighbours_list(towns, graph);
 
 //SORTING TOWNS ACCORDING TO DISTRICTS
     std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
@@ -65,7 +73,7 @@ int main() {
     for(int i = 0; i < towns; i++) {
 //        if(districts[i][0] == 0)
 //            continue;
-        for(const std::pair<int, int> &tp: graph[i]){
+        for(const auto &tp: graph[i]){
             int t = tp.first;
 
             //skip district towns
@@ -105,10 +113,10 @@ int main() {
     std::unordered_map<std::string, std::vector<std::tuple<int, int, int>>> districtConnections;
 
     for(int k = 0; k < dtowns; k++) {
-        printf("Dtown = %d \n", k + 1);
-        std::vector<std::tuple<int, int, int>> districtRoads(0);
+ //       printf("Dtown = %d \n", k + 1);
    //     std::vector<std::tuple<int, int, int>> districtConnection(noConnections);
 
+        std::vector<std::tuple<int, int, int>> districtRoads(0);
         std::set<int> repetition;
 
         for (int i = 0; i < towns; i++) {
@@ -128,9 +136,8 @@ int main() {
                 if(std::binary_search(repetition.begin(), repetition.end(), t))
                     continue;
 
-
-                    repetition.insert( i + 1);
-                    districtRoads.emplace_back(i + 1, t, tp.second);
+                repetition.insert( i + 1);
+                districtRoads.emplace_back(i + 1, t, tp.second);
 
             }
         }
@@ -142,29 +149,32 @@ int main() {
             return std::get<2>(x) < std::get<2>(y);
         });
 
-        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-        printf("\n\n\n");
+//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
 
    //     for (auto el: districtConnection) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
      //   printf("\n\n\n");
 
         std::set<int> mst;
         int districtMstLength = 0;
-        for(int i = 0; i < districtRoads.size(); i++) {
-            if(std::binary_search(mst.begin(), mst.end(), std::get<0>(districtRoads[i]))
-                && std::binary_search(mst.begin(), mst.end(), std::get<1>(districtRoads[i])))
-                continue;
-            mst.insert(std::get<0>(districtRoads[i]));
-            mst.insert(std::get<1>(districtRoads[i]));
-            districtMstLength += std::get<2>(districtRoads[i]);
+        for(const auto & road : districtRoads) {
+            if(std::binary_search(mst.begin(), mst.end(), std::get<0>(road))
+                && std::binary_search(mst.begin(), mst.end(), std::get<1>(road))) {
+                //jebo si jeza ovdje
+                ciklus(std::get<0>(road), std::get<1>(road), graph);
+            }
+
+            mst.insert(std::get<0>(road));
+            mst.insert(std::get<1>(road));
+            districtMstLength += std::get<2>(road);
         }
 
         districtMstLengths[k] = districtMstLength;
 
-        printf("MST: ");
-        for (auto el: mst) { printf("%d ", el); }
-        printf("\n Length: %d", districtMstLength);
-        printf("\n\n\n");
+//        printf("MST: ");
+//        for (auto el: mst) { printf("%d ", el); }
+//        printf("\n Length: %d", districtMstLength);
+//        printf("\n\n\n");
 
     }
     int connectionsLength = 0;
@@ -188,8 +198,6 @@ int main() {
     for(auto el: districtMstLengths)
         connectionsLength += el;
     printf("Conn length: %d", connectionsLength);
-
-
 
     return 0;
 }
