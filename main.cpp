@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <stack>
 
+void print_mst(std::set<int> set, int i);
+
 bool cyclus(const int &start, const int &end, const std::vector<std::list<std::pair<int, int>>> &graph, const std::vector<std::pair<int, int>> &mstRoads) {
     std::stack<int> toVisit;
     std::set<int> visited;
@@ -36,7 +38,6 @@ bool cyclus(const int &start, const int &end, const std::vector<std::list<std::p
 
 }
 
-
 void print_neighbours_list(int towns, std::vector<std::list<std::pair<int, int>>> graph) {
     printf("Ispis liste susjeda \n\n");
     for(int i = 0; i < towns; i++) {
@@ -63,70 +64,78 @@ void print_districts_sort(const std::vector<std::vector<int>> &districts) {
     }
 }
 
+
+
 void x() {
     constexpr int MAX_COST = 250;
-    unsigned int towns, dtowns, roads;
+    int towns, dtowns, roads;
     scanf("%d %d %d", &towns, &dtowns, &roads);
-
-    std::string str;
 
     std::vector<std::list<std::pair<int, int>>> graph(towns);
 
-//    printf("Pocelo\n");
 
     for(int i = 0; i < roads; i++) {
         int Town1, Town2, Cost;
         scanf("%d %d %d", &Town1, &Town2, &Cost);
-        // printf("Pravi problem %d - %d %d %d!!!!", i, Town1, Town2, Cost);
 
         graph[Town1 - 1].push_back(std::make_pair(Town2, Cost));
         graph[Town2 - 1].push_back(std::make_pair(Town1, Cost));
-
     }
 
 //    print_neighbours_list(towns, graph);
 
-//SORTING TOWNS ACCORDING TO DISTRICTS
+    //SORTING TOWNS ACCORDING TO DISTRICTS
     std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
 
-    for(int i = 0; i < dtowns; i++) {
+    for(int i = 0; i < dtowns; i++)
         districts[i][0] = i + 1;
-    }
 
-    for(int i = 0; i < towns; i++) {
-//        if(districts[i][0] == 0)
-//            continue;
-        for(const auto &tp: graph[i]){
-            int t = tp.first;
+    int counter = towns - dtowns;
 
-            //skip district towns
-            if(t <= dtowns)
-                continue;
-            //if town is not assigned a district assign it
-            if(districts[t - 1][0] == 0) {
-                districts[t - 1][0] = districts[i][0];
-                districts[t - 1][1] = districts[i][1] + 1;
-                continue;
-            }
+    do {
+        for (int i = 0; i < towns; i++) {
+            for (const auto &tp: graph[i]) {
+                int t = tp.first;
 
-                //if a shorter distance could be assigned
-            else if (districts[i - 1][1] + 1 < districts[t - 1][1]) {
-                districts[t - 1][0] = districts[i][0];
-                districts[t - 1][1] = districts[i][1] + 1;
-            }
+                //skip district towns
+                if (t <= dtowns)
+                    continue;
 
-                //if the distance is the same but id could be smaller
-            else if (districts[i - 1][1] + 1 == districts[t - 1][1] && districts[i - 1][0] < districts[t - 1][0]) {
-                districts[t - 1][0] = districts[i][0];
-                districts[t - 1][1] = districts[i][1] + 1;
-            }
+                if (districts[t - 1][0] == 0 && districts[i][0] == 0)
+                    continue;
 
-            else if (districts[t - 1][1] + 1 < districts[i][1]) {
-                districts[i][0] = districts[t - 1][0];
-                districts[i][1] = districts[t - 1][1] + 1;
+                    //if town is not assigned a district assign it
+                else if (districts[t - 1][0] == 0) {
+                    districts[t - 1][0] = districts[i][0];
+                    districts[t - 1][1] = districts[i][1] + 1;
+                    counter--;
+                } else if (districts[i][0] == 0) {
+                    districts[i][0] = districts[t - 1][0];
+                    districts[i][1] = districts[t - 1][1] + 1;
+                    counter--;
+                }
+                    //if a shorter distance could be assigned
+                else if (districts[i][1] + 1 < districts[t - 1][1]) {
+                    districts[t - 1][0] = districts[i][0];
+                    districts[t - 1][1] = districts[i][1] + 1;
+                }
+                else if (districts[t - 1][1] + 1 < districts[i][1]) {
+                    districts[i][0] = districts[t - 1][0];
+                    districts[i][1] = districts[t - 1][1] + 1;
+                }
+                    //if the distance is the same but id could be smaller
+                else if (districts[i][1] + 1 == districts[t - 1][1] && districts[i][0] < districts[t - 1][0]) {
+                    districts[t - 1][0] = districts[i][0];
+                    districts[t - 1][1] = districts[i][1] + 1;
+                }
+                else if (districts[i][1] == districts[t - 1][1] + 1 && districts[i][0] > districts[t - 1][0]) {
+                    districts[i][0] = districts[t - 1][0];
+                    districts[i][1] = districts[t - 1][1] + 1;
+                }
             }
         }
-    }
+    } while (counter > 0);
+
 
 //    print_districts_sort(districts);
 
@@ -137,7 +146,6 @@ void x() {
 
     for(int k = 0; k < dtowns; k++) {
         //       printf("Dtown = %d \n", k + 1);
-        //     std::vector<std::tuple<int, int, int>> districtConnection(noConnections);
 
         std::vector<std::tuple<int, int, int>> districtRoads(0);
         std::set<int> repetition;
@@ -149,7 +157,7 @@ void x() {
                 int t = tp.first;
 
                 if (districts[t - 1][0] != k + 1) {
-                    districtConnections[std::to_string(k + 1) + '-' + std::to_string(districts[t - 1][0])].emplace_back(i + 1, t, tp.second);
+                    districtConnections[std::to_string(k + 1) + std::to_string(districts[t - 1][0])].emplace_back(i + 1, t, tp.second);
                     continue;
                 }
 
@@ -175,8 +183,8 @@ void x() {
 //        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
 //        printf("\n\n\n");
 
-        //     for (auto el: districtConnection) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-        //   printf("\n\n\n");
+//        for (auto el: districtConnection) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
 
         std::set<int> mst;
         std::vector<std::pair<int, int>> mstRoads;
@@ -196,10 +204,8 @@ void x() {
 
         districtMstLengths[k] = districtMstLength;
 
-//        printf("MST: ");
-//        for (auto el: mst) { printf("%d ", el); }
-//        printf("\n Length: %d", districtMstLength);
-//        printf("\n\n\n");
+
+//        print_mst(mst, districtMstLength);
 
     }
     int connectionsLength = 0;
@@ -208,12 +214,12 @@ void x() {
         for(int j = i + 1; j < dtowns; j++) {
             if(noConnections >= dtowns - 1)
                 break;
-            std::vector<std::tuple<int, int, int>> connections = districtConnections[std::to_string(i + 1) + '-' + std::to_string(j + 1)];
+            std::vector<std::tuple<int, int, int>> connections = districtConnections[std::to_string(i + 1) + std::to_string(j + 1)];
             if(!connections.empty()) {
                 int minConnection = std::get<2>(connections[0]);
-                for(int k = 0; k < connections.size(); k++) {
-                    if( std::get<2>(connections[k]) < minConnection) {
-                        minConnection = std::get<2>(connections[k]);
+                for(const auto & connection : connections) {
+                    if( std::get<2>(connection) < minConnection) {
+                        minConnection = std::get<2>(connection);
                     }
                 }
 
@@ -227,7 +233,16 @@ void x() {
 
     for(auto el: districtMstLengths)
         connectionsLength += el;
-    printf("Conn length: %d", connectionsLength);
+//    printf("Conn length: %d", connectionsLength);
+    printf("%d", connectionsLength);
+}
+
+void print_mst(std::set<int> mst, int districtMstLength) {
+    printf("MST: ");
+    for (auto el: mst) { printf("%d ", el); }
+    printf("\n Length: %d", districtMstLength);
+    printf("\n\n\n");
+
 }
 
 void test() {
@@ -266,7 +281,6 @@ int main() {
 
     x();
     end = clock();
-
     printf("\nVrijeme izvrsavanja: %f", double ((end - start) / 1000.));
     return 0;
 }
