@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <stack>
 
+void districtsCheck(const std::vector<std::vector<int>>& districts);
+
 void print_mst(std::set<int> mst, int districtMstLength) {
     printf("MST: ");
     for (auto el: mst) { printf("%d ", el); }
@@ -192,8 +194,30 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
 
     while (!izbjeglice.empty()) {
         for (auto it = izbjeglice.begin(); it != izbjeglice.end(); it++) {
+//            if (districts[*it - 1][0] != 0) {
+//                izbjeglice.erase(it++);
+//                it--;
+//                continue;
+//            }
+
             if (districts[*it - 1][0] != 0) {
+                for (const auto &tp: graph[*it - 1]) {
+                    int t = tp.first;
+                    if (districts[t - 1][0] == 0) {
+                        districts[t - 1][0] = districts[*it - 1][0];
+                        districts[t - 1][1] = districts[*it - 1][1] + 1;
+                    }
+                    else if(districts[*it - 1][0] + 1 < districts[t - 1][0]) {
+                        districts[t - 1][0] = districts[*it - 1][0];
+                        districts[t - 1][1] = districts[*it - 1][1] + 1;
+                    }
+                    else if(districts[*it - 1][0] + 1 == districts[t - 1][0] && districts[*it - 1][1] + 1 < districts[t - 1][1]) {
+                        districts[t - 1][0] = districts[*it - 1][0];
+                        districts[t - 1][1] = districts[*it - 1][1] + 1;
+                    }
+                }
                 izbjeglice.erase(it++);
+//                it--;
                 continue;
             }
 
@@ -204,11 +228,12 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
                     //izbjeglice.emplace_back(t);
                     //trebao bi vec biti u listi
                     continue;
-                } else {
+                }
+                else {
                     districts[*it - 1][0] = districts[t - 1][0];
                     districts[*it - 1][1] = districts[t - 1][1] + 1;
                     izbjeglice.erase(it++);
-                    break;
+            //        it--;
                 }
             }
         }
@@ -217,6 +242,8 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
 
 //    print_districts_sort(districts);
 }
+
+
 
 void x() {
     constexpr int MAX_COST = 250;
@@ -230,22 +257,13 @@ void x() {
     std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
     std::vector<std::vector<int>> districts2 (towns, std::vector<int>(2, 0));
 
-    districtSort( towns,  dtowns, graph, districts);
-    ds( towns,  dtowns, graph, districts2);
+ //   districtSort( towns,  dtowns, graph, districts);
+    ds( towns,  dtowns, graph, districts);
 
-    for(auto red: districts) {
-        if(red[0] == 0){
-            printf("BELAJ!");
-            break;
-        }
-    }
+//    districtsCheck(districts);
+//    districtsCheck(districts2);
 
-    for(auto red: districts2) {
-        if(red[0] == 0){
-            printf("BELAJ!");
-            break;
-        }
-    }
+
 
     for(int i = 0; i < districts.size(); i++) {
         if(districts[i][0] != districts2[i][0]){
@@ -257,104 +275,112 @@ void x() {
 //        }
     }
 
-//KRUSKAL'S ALGORTIHM
-//    std::vector<int> districtMstLengths(dtowns);
-//
-//    std::unordered_map<std::string, std::vector<std::tuple<int, int, int>>> districtConnections;
-//
-//    for(int k = 0; k < dtowns; k++) {
-//        //       printf("Dtown = %d \n", k + 1);
-//
-//        std::vector<std::tuple<int, int, int>> districtRoads(0);
-//        std::set<int> repetition;
-//
-//        for (int i = 0; i < towns; i++) {
-//            if (districts[i][0] != k + 1)
-//                continue;
-//            for (const std::pair<int, int> &tp: graph[i]) {
-//                int t = tp.first;
-//
-//                if (districts[t - 1][0] != k + 1) {
-//                    districtConnections[std::to_string(k + 1) + std::to_string(districts[t - 1][0])].emplace_back(i + 1, t, tp.second);
-//                    continue;
-//                }
-//
-//                if (t <= dtowns)
-//                    continue;
-//
-//                if(std::binary_search(repetition.begin(), repetition.end(), t))
-//                    continue;
-//
-//                repetition.insert( i + 1);
-//                districtRoads.emplace_back(i + 1, t, tp.second);
-//
-//            }
-//        }
-//
-////        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-////        printf("\n\n\n");
-//
-//        std::sort(districtRoads.begin(), districtRoads.end(), [] (const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
-//            return std::get<2>(x) < std::get<2>(y);
-//        });
-//
-////        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-////        printf("\n\n\n");
-//
-////        for (auto el: districtConnection) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-////        printf("\n\n\n");
-//
-//        std::set<int> mst;
-//        std::vector<std::pair<int, int>> mstRoads;
-//        int districtMstLength = 0;
-//        for(const auto & road : districtRoads) {
-//            if(std::binary_search(mst.begin(), mst.end(), std::get<0>(road))
-//               && std::binary_search(mst.begin(), mst.end(), std::get<1>(road))) {
-//                if(cyclus(std::get<0>(road), std::get<1>(road), graph, mstRoads))
-//                    continue;
-//            }
-//
-//            mst.insert(std::get<0>(road));
-//            mst.insert(std::get<1>(road));
-//            mstRoads.emplace_back(std::get<0>(road), std::get<1>(road));
-//            districtMstLength += std::get<2>(road);
-//        }
-//
-//        districtMstLengths[k] = districtMstLength;
-//
-//
-////        print_mst(mst, districtMstLength);
-//
-//    }
-//    int connectionsLength = 0;
-//    int noConnections = 0;
-//    for(int i = 0; i < dtowns; i++) {
-//        for(int j = i + 1; j < dtowns; j++) {
-//            if(noConnections >= dtowns - 1)
-//                break;
-//            std::vector<std::tuple<int, int, int>> connections = districtConnections[std::to_string(i + 1) + std::to_string(j + 1)];
-//            if(!connections.empty()) {
-//                int minConnection = std::get<2>(connections[0]);
-//                for(const auto & connection : connections) {
-//                    if( std::get<2>(connection) < minConnection) {
-//                        minConnection = std::get<2>(connection);
-//                    }
-//                }
-//
-//                connectionsLength += minConnection;
-//                noConnections++;
-//            }
-//        }
-//        if(noConnections >= dtowns - 1)
-//            break;
-//    }
-//
-//    for(auto el: districtMstLengths)
-//        connectionsLength += el;
-////    printf("Conn length: %d", connectionsLength);
-//    printf("%d", connectionsLength);
+//    KRUSKAL'S ALGORTIHM
+    std::vector<int> districtMstLengths(dtowns);
+
+    std::unordered_map<std::string, std::vector<std::tuple<int, int, int>>> districtConnections;
+
+    for(int k = 0; k < dtowns; k++) {
+        //       printf("Dtown = %d \n", k + 1);
+
+        std::vector<std::tuple<int, int, int>> districtRoads(0);
+        std::set<int> repetition;
+
+        for (int i = 0; i < towns; i++) {
+            if (districts[i][0] != k + 1)
+                continue;
+            for (const std::pair<int, int> &tp: graph[i]) {
+                int t = tp.first;
+
+                if (districts[t - 1][0] != k + 1) {
+                    districtConnections[std::to_string(k + 1) + std::to_string(districts[t - 1][0])].emplace_back(i + 1, t, tp.second);
+                    continue;
+                }
+
+                if (t <= dtowns)
+                    continue;
+
+                if(std::binary_search(repetition.begin(), repetition.end(), t))
+                    continue;
+
+                repetition.insert( i + 1);
+                districtRoads.emplace_back(i + 1, t, tp.second);
+
+            }
+        }
+
+//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
+
+        std::sort(districtRoads.begin(), districtRoads.end(), [] (const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
+            return std::get<2>(x) < std::get<2>(y);
+        });
+
+//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
+
+//        for (auto el: districtConnection) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
+
+        std::set<int> mst;
+        std::vector<std::pair<int, int>> mstRoads;
+        int districtMstLength = 0;
+        for(const auto & road : districtRoads) {
+            if(std::binary_search(mst.begin(), mst.end(), std::get<0>(road))
+               && std::binary_search(mst.begin(), mst.end(), std::get<1>(road))) {
+                if(cyclus(std::get<0>(road), std::get<1>(road), graph, mstRoads))
+                    continue;
+            }
+
+            mst.insert(std::get<0>(road));
+            mst.insert(std::get<1>(road));
+            mstRoads.emplace_back(std::get<0>(road), std::get<1>(road));
+            districtMstLength += std::get<2>(road);
+        }
+
+        districtMstLengths[k] = districtMstLength;
+
+
+//        print_mst(mst, districtMstLength);
+
+    }
+    int connectionsLength = 0;
+    int noConnections = 0;
+    for(int i = 0; i < dtowns; i++) {
+        for(int j = i + 1; j < dtowns; j++) {
+            if(noConnections >= dtowns - 1)
+                break;
+            std::vector<std::tuple<int, int, int>> connections = districtConnections[std::to_string(i + 1) + std::to_string(j + 1)];
+            if(!connections.empty()) {
+                int minConnection = std::get<2>(connections[0]);
+                for(const auto & connection : connections) {
+                    if( std::get<2>(connection) < minConnection) {
+                        minConnection = std::get<2>(connection);
+                    }
+                }
+
+                connectionsLength += minConnection;
+                noConnections++;
+            }
+        }
+        if(noConnections >= dtowns - 1)
+            break;
+    }
+
+    for(auto el: districtMstLengths)
+        connectionsLength += el;
+//    printf("Conn length: %d", connectionsLength);
+    printf("%d", connectionsLength);
 }
 
+void districtsCheck(const std::vector<std::vector<int>>& districts) {
+    for(auto red: districts) {
+        if(red[0] == 0){
+            printf("BELAJ!");
+            break;
+        }
+    }
+}
 
 
 void test() {
