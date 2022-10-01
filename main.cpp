@@ -148,6 +148,7 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
         districts[i][0] = i + 1;
 
     std::list<int> izbjeglice;
+    std::set<int> set;
 
     for (int i = 0; i < towns; i++) {
         for (const auto &tp: graph[i]) {
@@ -160,6 +161,8 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
             if (districts[t - 1][0] == 0 && districts[i][0] == 0) {
                 izbjeglice.emplace_back(i + 1);
                 izbjeglice.emplace_back(t);
+                set.emplace(i + 1);
+                set.emplace(t);
                 continue;
             }
 
@@ -192,13 +195,47 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
         }
     }
 
-    while (!izbjeglice.empty()) {
-        for (auto it = izbjeglice.begin(); it != izbjeglice.end(); it++) {
+//    while (!izbjeglice.empty()) {
+//        for (auto it = izbjeglice.begin(); it != izbjeglice.end(); it++) {
+//
 //            if (districts[*it - 1][0] != 0) {
+//                for (const auto &tp: graph[*it - 1]) {
+//                    int t = tp.first;
+//                    if (districts[t - 1][0] == 0) {
+//                        districts[t - 1][0] = districts[*it - 1][0];
+//                        districts[t - 1][1] = districts[*it - 1][1] + 1;
+//                    }
+//                    else if(districts[*it - 1][0] + 1 < districts[t - 1][0]) {
+//                        districts[t - 1][0] = districts[*it - 1][0];
+//                        districts[t - 1][1] = districts[*it - 1][1] + 1;
+//                    }
+//                    else if(districts[*it - 1][0] + 1 == districts[t - 1][0] && districts[*it - 1][1] + 1 < districts[t - 1][1]) {
+//                        districts[t - 1][0] = districts[*it - 1][0];
+//                        districts[t - 1][1] = districts[*it - 1][1] + 1;
+//                    }
+//                }
 //                izbjeglice.erase(it++);
-//                it--;
 //                continue;
 //            }
+//
+//            for (const auto &tp: graph[*it - 1]) {
+//                int t = tp.first;
+//
+//                if (districts[t - 1][0] == 0) {
+//                    //trebao bi vec biti u listi
+//                    continue;
+//                }
+//                else {
+//                    districts[*it - 1][0] = districts[t - 1][0];
+//                    districts[*it - 1][1] = districts[t - 1][1] + 1;
+//                    izbjeglice.erase(it++);
+//                }
+//            }
+//        }
+//    }
+
+    while (!set.empty()) {
+        for (auto it = set.begin(); it != set.end();) {
 
             if (districts[*it - 1][0] != 0) {
                 for (const auto &tp: graph[*it - 1]) {
@@ -216,29 +253,42 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
                         districts[t - 1][1] = districts[*it - 1][1] + 1;
                     }
                 }
-                izbjeglice.erase(it++);
-//                it--;
+                set.erase(it++);
                 continue;
             }
 
+            bool erase = false;
             for (const auto &tp: graph[*it - 1]) {
                 int t = tp.first;
 
                 if (districts[t - 1][0] == 0) {
-                    //izbjeglice.emplace_back(t);
                     //trebao bi vec biti u listi
+
                     continue;
                 }
-                else {
+
+                else if(districts[*it - 1][0] == 0){
                     districts[*it - 1][0] = districts[t - 1][0];
                     districts[*it - 1][1] = districts[t - 1][1] + 1;
-                    izbjeglice.erase(it++);
-            //        it--;
+                    erase = true;
+                }
+                else if(districts[t - 1][0] + 1 < districts[*it - 1][0]) {
+                    districts[*it - 1][0] = districts[t - 1][0];
+                    districts[*it - 1][1] = districts[t - 1][1] + 1;
+                }
+                else if(districts[t - 1][0] + 1 == districts[*it - 1][0] && districts[t - 1][1] < districts[*it - 1][1]) {
+                    districts[*it - 1][0] = districts[t - 1][0];
+                    districts[*it - 1][1] = districts[t - 1][1] + 1;
                 }
             }
+            if(erase) {
+                set.erase(it++);
+            }
+
+            it++;
+
         }
     }
-
 
 //    print_districts_sort(districts);
 }
