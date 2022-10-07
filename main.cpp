@@ -504,25 +504,21 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
     std::vector<std::tuple<int, int, int>> districtConnections(0);
 
     for(int k = 0; k < dtowns; k++) {
-//        printf("Dtown = %d \n", k + 1);
 
         std::vector<std::tuple<int, int, int>> districtRoads(0);
-        std::vector<std::vector<bool>> repetition(towns, std::vector<bool>(towns));
 
         for (int i = 0; i < towns; i++) {
             if (districts[i][0] == k + 1) {
-                for (const std::pair<int, int> &tp: graph[i]) {
+                for (const auto &tp: graph[i]) {
                     int t = tp.first;
 
                     if(t <= dtowns) continue;
-
                     else if(districts[t - 1][0] != k + 1) {
                         if(tp.second < districtGraph[districts[t - 1][0] - 1][k]) {
-                            districtConnections.emplace_back(districts[t - 1][0], k + 1,tp.second);
+                            continue;
                         }
                     }
-                    else if (!repetition[t - 1][i]) {
-                        repetition[i][t - 1] = true;
+                    else if (i < t) {
                         districtRoads.emplace_back(i + 1, t, tp.second);
                     }
                 }
@@ -530,38 +526,40 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
         }
 
 
-//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-//        printf("\n\n\n");
 
         std::sort(districtRoads.begin(), districtRoads.end(),[](const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
                       return std::get<2>(x) < std::get<2>(y);
                   });
-//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-//        printf("\n\n\n");
 
         listOfDistrictRoads.emplace_back(districtRoads);
     }
 
-//    for(int i = 0; i < dtowns; i++) {
-//        for(int j = 0; j < i; j++) {
-//            if(districtGraph[i][j] != MAX_COST)
-//                districtConnections.emplace_back(j + 1, i + 1, districtGraph[i][j]);
-//        }
-//    }
+    for(int i = 0; i < towns; i++) {
+        for(const auto &tp: graph[i]) {
+            int dt1 = districts[tp.first - 1][0] - 1;
+            int dt2 = districts[i][0] - 1;
+
+            if(dt1 != dt2) {
+                if(tp.second < districtGraph[dt1][dt2])
+                    districtGraph[dt1][dt2] = tp.second;
+            }
+        }
+    }
+
+    for(int i = 0; i < dtowns; i++) {
+        for(int j = 0; j < i; j++) {
+            if(districtGraph[i][j] != MAX_COST)
+                districtConnections.emplace_back(i + 1, j + 1, districtGraph[i][j]);
+        }
+    }
 
     std::sort(districtConnections.begin(), districtConnections.end(),[](const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
         return std::get<2>(x) < std::get<2>(y);
     });
 
-//    for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
-//    printf("\n\n\n");
 
     listOfDistrictRoads.emplace_back(districtConnections);
 
-//    for(auto red: districtGraph) {
-//        for(auto el: red) printf("%d ", el);
-//        printf("\n");
-//    }
 }
 
 
@@ -576,9 +574,6 @@ int UF_find( int a, std::vector<int> &boss) {
         boss[a] = UF_find( parent , boss); // path compression
     return boss[a];
 }
-
-void UF_union( int rootA, int rootB,  std::vector<int> &boss, std::vector<int> &rank) {
-     }
 
 void kruskal(int towns, int dtowns, const std::vector<std::vector<std::tuple<int, int, int>>> &listOfDistrictRoads) {
     std::vector<int> boss(towns);
@@ -615,47 +610,48 @@ void kruskal(int towns, int dtowns, const std::vector<std::vector<std::tuple<int
     int sum = 0;
     for(int i = 0; i <= dtowns; i++) {
         sum += districtMst[i];
-        printf("%d: mst = %d\n", i, districtMst[i]);
+//        printf("%d: mst = %d\n", i, districtMst[i]);
     }
-    printf("\n\n%d", sum);
+//    printf("\n\n%d", sum);
+    printf("%d", sum);
 
 }
 
 void x() {
     int towns, dtowns, roads;
 
-    clock_t a, b,c, d;
+    clock_t a, b,c, d, e;
     a = clock();
 
     std::vector<std::list<std::pair<int, int>>> graph(0);
 
     readData(towns, dtowns, roads, graph);
     b = clock();
-    printf("Ucitalo podatke %f\n\n", ((b - a) / 1000.));
+//    printf("Ucitalo podatke %f\n\n", ((b - a) / 1000.));
 
     //SORTING TOWNS ACCORDING TO DISTRICTS
     std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
     bfsDistrictSort(towns, dtowns, graph, districts);
     c= clock();
-    printf("Sortiralo %f \n\n",((c - b) / 1000.));
+//    printf("Sortiralo %f \n\n",((c - b) / 1000.));
     //PREPARATION FOR KRUSKAL
     std::vector<std::vector<std::tuple<int, int, int>>> listOfDistrictRoads;
     roadSort(towns, dtowns, graph, districts, listOfDistrictRoads);
     d=clock();
-    printf("Rasporedilo %f, \n\n", ((d - c) / 1000.));
+//    printf("Priprema za kruskala %f, \n\n", ((d - c) / 1000.));
     //KRUSKAL
 
     kruskal(towns, dtowns, listOfDistrictRoads);
-
+    e=clock();
+//    printf("\n\nKruskal %f, \n\n", ((e - d) / 1000.));
 }
 
 int main() {
-    printf("aaa");
     clock_t start, end;
     start = clock();
 
     x();
     end = clock();
-    printf("\nVrijeme izvrsavanja: %f", double ((end - start) / 1000.));
+//    printf("\nVrijeme izvrsavanja: %f", double ((end - start) / 1000.));
     return 0;
 }
