@@ -507,6 +507,7 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
 
         std::vector<std::tuple<int, int, int>> districtRoads(0);
 
+
         for (int i = 0; i < towns; i++) {
             if (districts[i][0] == k + 1) {
                 for (const auto &tp: graph[i]) {
