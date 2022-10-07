@@ -9,106 +9,8 @@
 #include <stack>
 #include <queue>
 
-void districtsCheck(const std::vector<std::vector<int>>& districts);
-
-void pd(const std::vector<std::vector<int>>& districts, int dtowns) {
-    std::vector<std::vector<int>> d(dtowns, std::vector<int>());
-    for(int i = 0; i < districts.size(); i++) {
-        d[districts[i][0] - 1].push_back(i + 1);
-    }
-
-
-
-    for(int i = 0; i < d.size(); i++) {
-        printf("%d: ", i + 1);
-        for(int j = 1; j < d[i].size(); j++) {
-            printf("%d ", d[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-
-void print_mst(std::set<int> mst, int districtMstLength) {
-    printf("MST: ");
-    for (auto el: mst) { printf("%d ", el); }
-    printf("\n Length: %d", districtMstLength);
-    printf("\n\n\n");
-
-
-}
-
-void print_neighbours_list(int towns, std::vector<std::list<std::pair<int, int>>> graph) {
-    printf("Ispis liste susjeda \n\n");
-    for(int i = 0; i < towns; i++) {
-        printf("%d: ", i+1);
-        for(auto a: graph[i]){
-            printf(" '%d' ", a.first);
-        }
-        printf("\n");
-
-    }
-}
-
-void print_districts_sort(const std::vector<std::vector<int>> &districts) {
-    printf("Ispis sortiranja po distriktima \n\n");
-    int i = 1;
-    for(auto d: districts) {
-        printf("%d.  ", i);
-
-        for(int a: d){
-            printf(" '%d' ", a);
-        }
-        printf("\n");
-        i++;
-    }
-}
-
-bool cyclus(const int &start, const int &end, const std::vector<std::list<std::pair<int, int>>> &graph, const std::vector<std::pair<int, int>> &mstRoads) {
-    std::stack<int> toVisit;
-    std::set<int> visited;
-
-    toVisit.push(start);
-    while(!toVisit.empty()) {
-        int v = toVisit.top();
-        toVisit.pop();
-
-        if(v == end)
-            return true;
-        if (!std::binary_search(visited.begin(), visited.end(), v)) {
-            visited.insert(v);
-            for(const auto &x: graph[v - 1]) {
-                for(const auto &road: mstRoads) {
-                    if(v == road.first && x.first == road.second)
-                        toVisit.push(x.first);
-                    else if(v == road.second && x.first == road.first)
-                        toVisit.push(x.first);
-                }
-
-            }
-        }
-    }
-    return false;
-
-}
-
-void readData(int &towns, int &dtowns, int &roads, std::vector<std::list<std::pair<int, int>>> &graph) {
-    scanf("%d %d %d", &towns, &dtowns, &roads);
-
-    std::vector<std::list<std::pair<int, int>>> g(towns);
-    graph = std::move(g);
-
-    for(int i = 0; i < roads; i++) {
-        int Town1, Town2, Cost;
-        scanf("%d %d %d", &Town1, &Town2, &Cost);
-
-        graph[Town1 - 1].push_back(std::make_pair(Town2, Cost));
-        graph[Town2 - 1].push_back(std::make_pair(Town1, Cost));
-    }
-
-//    print_neighbours_list(towns, graph);
-}
 /*
+ *
 void districtSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>> &graph, std::vector<std::vector<int>> &districts) {
     for(int i = 0; i < dtowns; i++)
         districts[i][0] = i + 1;
@@ -364,102 +266,11 @@ void ds(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>>
 
 //    print_districts_sort(districts);
 }
+
+
 */
-void bfsDistrictSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>> &graph, std::vector<std::vector<int>> &districts) {
-    std::vector<std::queue<int>> townsToVisit(dtowns);
-
-    for(int i = 0; i < dtowns; i++) {
-        districts[i][0] = i + 1;
-        townsToVisit[i].push(i + 1);
-    }
-
-    int visited = 0;
-    std::vector<bool> visitedTowns (towns, false);
-
-    while (visited < towns) {
-
-        for(int i = 0; i < dtowns; i++) {
-
-            int limit = townsToVisit[i].size();
-
-            while (limit != 0) {
-
-                int visitingTown = townsToVisit[i].front();
-                townsToVisit[i].pop();
-
-                if(!visitedTowns[visitingTown - 1]) {
-                    visitedTowns[visitingTown - 1] = true;
-                    visited++;
-                    for(const auto &tp: graph[visitingTown - 1]) {
-                        int t = tp.first;
-                        if(districts[t - 1][0] == 0) {
-                            townsToVisit[i].push(tp.first);
-                        }
-                    }
-                }
-
-                if(districts[visitingTown - 1][0] == 0) {
-                    for(const auto &tp: graph[visitingTown - 1]){
-                        int neighbour = tp.first;
-                        if(districts[neighbour - 1][0] == 0)
-                            continue;
-                        else if(districts[neighbour - 1][0] != 0 && districts[visitingTown - 1][0] == 0) {
-                            districts[visitingTown - 1][0] = districts[neighbour - 1][0];
-                            districts[visitingTown - 1][1] = districts[neighbour - 1][1] + 1;
-                        }
-                        else if(districts[neighbour - 1][1] + 1 < districts[visitingTown - 1][1]) {
-                            districts[visitingTown - 1][0] = districts[neighbour - 1][0];
-                            districts[visitingTown - 1][1] = districts[neighbour - 1][1] + 1;
-                        }
-                        else if(districts[neighbour - 1][1] + 1 == districts[visitingTown - 1][1] && districts[neighbour - 1][0] < districts[visitingTown - 1][0]) {
-                            districts[visitingTown - 1][0] = districts[neighbour - 1][0];
-                            districts[visitingTown - 1][1] = districts[neighbour - 1][1] + 1;
-                        }
-                    }
-                }
-
-                limit--;
-            }
-
-        }
-
-    }
-
-//    print_districts_sort(districts);
-    pd(districts, dtowns);
-}
-
-void x() {
-    constexpr int MAX_COST = 250;
-    int towns, dtowns, roads;
-
-    std::vector<std::list<std::pair<int, int>>> graph(0);
-
-    readData(towns, dtowns, roads, graph);
-
-    //SORTING TOWNS ACCORDING TO DISTRICTS
-    std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
-    std::vector<std::vector<int>> districts2 (towns, std::vector<int>(2, 0));
-
-//    districtSort( towns,  dtowns, graph, districts);
-    bfsDistrictSort(towns, dtowns, graph, districts);
- //   ds( towns,  dtowns, graph, districts);
-
- //   districtsCheck(districts);
-
-
-
-//    for(int i = 0; i < districts.size(); i++) {
-//        if(districts[i][0] != districts2[i][0]){
-//         //   printf("BELAJ!1 - %d d1 %d %d vs d2 %d %d \n\n", i, districts[i][0], districts[i][1], districts2[i][0], districts2[i][1]);
-//        }
-////        if(districts[i][1] != districts2[i][1]) {
-////            printf("BELAJ!2 - %d d1 %d %d vs d2 %d %d \n\n", i, districts[i][0], districts[i][1], districts2[i][0], districts2[i][1]);
-////
-////        }
-//    }
-
-//    KRUSKAL'S ALGORTIHM
+void pokusajKrusakla() {
+    //    KRUSKAL'S ALGORTIHM
 //    std::vector<int> districtMstLengths(dtowns);
 //
 //    std::unordered_map<std::string, std::vector<std::tuple<int, int, int>>> districtConnections;
@@ -556,43 +367,289 @@ void x() {
 ////    printf("Conn length: %d", connectionsLength);
 //    printf("%d", connectionsLength);
 }
-
-void districtsCheck(const std::vector<std::vector<int>>& districts) {
-    for(auto red: districts) {
-        if(red[0] == 0){
-            printf("BELAJ!");
-            break;
+void pd(const std::vector<std::vector<int>>& districts, int dtowns) {
+    std::vector<std::vector<int>> d(dtowns, std::vector<int>());
+    for(int i = 0; i < districts.size(); i++) {
+        d[districts[i][0] - 1].push_back(i + 1);
+    }
+    for(int i = 0; i < d.size(); i++) {
+        printf("%d: ", i + 1);
+        for(int j = 1; j < d[i].size(); j++) {
+            printf("%d ", d[i][j]);
         }
+        printf("\n");
+    }
+}
+
+void print_mst(std::set<int> mst, int districtMstLength) {
+    printf("MST: ");
+    for (auto el: mst) { printf("%d ", el); }
+    printf("\n Length: %d", districtMstLength);
+    printf("\n\n\n");
+}
+
+void print_neighbours_list(int towns, std::vector<std::list<std::pair<int, int>>> graph) {
+    printf("Ispis liste susjeda \n\n");
+    for(int i = 0; i < towns; i++) {
+        printf("%d: ", i+1);
+        for(auto a: graph[i]){
+            printf(" '%d' ", a.first);
+        }
+        printf("\n");
+
+    }
+}
+
+void print_districts_sort(const std::vector<std::vector<int>> &districts) {
+    printf("Ispis sortiranja po distriktima \n\n");
+    int i = 1;
+    for(auto d: districts) {
+        printf("%d.  ", i);
+
+        for(int a: d){
+            printf(" '%d' ", a);
+        }
+        printf("\n");
+        i++;
     }
 }
 
 
-void test() {
-    //    std::vector<std::list<std::pair<int, int>>> graph;
-//    graph.push_back({{2,0}, {3, 0}});
-//    graph.push_back({{1,0}, {4, 0}});
-//    graph.push_back({{1,0}, {4, 0}, {5, 0}});
-//    graph.push_back({{2,0}, {3, 0}, {5,0}});
-//    graph.push_back({{3,0}, {4, 0}});
-//
-//    std::vector<std::pair<int, int>> mst;
-//    mst.push_back({1,3});
-//    mst.push_back({4, 5});
-//    mst.push_back({1, 2});
-//    mst.push_back({4, 2});
+void readData(int &towns, int &dtowns, int &roads, std::vector<std::list<std::pair<int, int>>> &graph) {
+    scanf("%d %d %d", &towns, &dtowns, &roads);
 
-//    graph.push_back({{2,0}, {5, 0}, {6, 0}});
-//    graph.push_back({{1,0}, {3, 0}, {5, 0}});
-//    graph.push_back({{2,0}, {4, 0}});
-//    graph.push_back({{3,0}, {5, 0}});
-//    graph.push_back({{1,0}, {2, 0}, {4, 0}});
-//    graph.push_back({{1,0}});
-//
-//    std::vector<std::pair<int, int>> mst;
-//    mst.push_back({1,2});
-//    mst.push_back({2, 5});
+    std::vector<std::list<std::pair<int, int>>> g(towns);
+    graph = std::move(g);
 
-//    printf("%d", cyclus(4, 3, graph,mst));
+    for(int i = 0; i < roads; i++) {
+        int Town1, Town2, Cost;
+        scanf("%d %d %d", &Town1, &Town2, &Cost);
+
+        graph[Town1 - 1].push_back(std::make_pair(Town2, Cost));
+        graph[Town2 - 1].push_back(std::make_pair(Town1, Cost));
+    }
+
+//    print_neighbours_list(towns, graph);
+}
+
+void bfsDistrictSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>> &graph, std::vector<std::vector<int>> &districts) {
+    std::vector<std::queue<int>> townsToVisit(dtowns);
+
+    for(int i = 0; i < dtowns; i++) {
+        districts[i][0] = i + 1;
+        townsToVisit[i].push(i + 1);
+    }
+
+    int visited = 0;
+    std::vector<bool> visitedTowns (towns, false);
+
+    while (visited < towns) {
+
+        for(int i = 0; i < dtowns; i++) {
+
+            int limit = townsToVisit[i].size();
+
+            while (limit != 0) {
+
+                int visitingTown = townsToVisit[i].front();
+                townsToVisit[i].pop();
+
+                if(!visitedTowns[visitingTown - 1]) {
+                    visitedTowns[visitingTown - 1] = true;
+                    visited++;
+                    for(const auto &tp: graph[visitingTown - 1]) {
+                        int t = tp.first;
+                        if(districts[t - 1][0] == 0) {
+                            townsToVisit[i].push(tp.first);
+                        }
+                    }
+                }
+
+                if(districts[visitingTown - 1][0] == 0) {
+                    for(const auto &tp: graph[visitingTown - 1]){
+                        int neighbour = tp.first;
+                        if(districts[neighbour - 1][0] == 0)
+                            continue;
+                        else if(districts[neighbour - 1][0] != 0 && districts[visitingTown - 1][0] == 0) {
+                            districts[visitingTown - 1][0] = districts[neighbour - 1][0];
+                            districts[visitingTown - 1][1] = districts[neighbour - 1][1] + 1;
+                        }
+                        else if(districts[neighbour - 1][1] + 1 < districts[visitingTown - 1][1]) {
+                            districts[visitingTown - 1][0] = districts[neighbour - 1][0];
+                            districts[visitingTown - 1][1] = districts[neighbour - 1][1] + 1;
+                        }
+                        else if(districts[neighbour - 1][1] + 1 == districts[visitingTown - 1][1] && districts[neighbour - 1][0] < districts[visitingTown - 1][0]) {
+                            districts[visitingTown - 1][0] = districts[neighbour - 1][0];
+                            districts[visitingTown - 1][1] = districts[neighbour - 1][1] + 1;
+                        }
+                    }
+                }
+
+                limit--;
+            }
+
+        }
+
+    }
+
+//    print_districts_sort(districts);
+//    pd(districts, dtowns);
+}
+
+void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, int>>> &graph,const std::vector<std::vector<int>> &districts,
+              std::vector<std::vector<std::tuple<int, int, int>>> &listOfDistrictRoads) {
+
+    constexpr int MAX_COST = 251;
+    std::vector<std::vector<int>> districtGraph (dtowns, std::vector<int>(dtowns, MAX_COST));
+
+    for(int k = 0; k < dtowns; k++) {
+//        printf("Dtown = %d \n", k + 1);
+
+        std::vector<std::tuple<int, int, int>> districtRoads(0);
+        std::vector<std::vector<bool>> repetition(towns, std::vector<bool>(towns));
+
+        for (int i = 0; i < towns; i++) {
+            if (districts[i][0] == k + 1) {
+                for (const std::pair<int, int> &tp: graph[i]) {
+                    int t = tp.first;
+
+                    if(t <= dtowns) continue;
+
+                    else if(districts[t - 1][0] != k + 1) {
+                        if(tp.second < districtGraph[districts[t - 1][0] - 1][k])
+                            districtGraph[districts[t - 1][0] - 1][k] = tp.second;
+                    }
+
+                    else if (!repetition[t - 1][i]) {
+                        repetition[i][t - 1] = true;
+                        districtRoads.emplace_back(i + 1, t, tp.second);
+                    }
+                }
+            }
+        }
+
+
+//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
+
+        std::sort(districtRoads.begin(), districtRoads.end(),[](const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
+                      return std::get<2>(x) < std::get<2>(y);
+                  });
+//        for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//        printf("\n\n\n");
+
+        listOfDistrictRoads.emplace_back(districtRoads);
+    }
+
+    std::vector<std::tuple<int, int, int>> districtRoads(0);
+
+    for(int i = 0; i < dtowns; i++) {
+        for(int j = 0; j < i; j++) {
+            if(districtGraph[i][j] != MAX_COST)
+                districtRoads.emplace_back(j + 1, i + 1, districtGraph[i][j]);
+        }
+    }
+
+    std::sort(districtRoads.begin(), districtRoads.end(),[](const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
+        return std::get<2>(x) < std::get<2>(y);
+    });
+
+//    for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
+//    printf("\n\n\n");
+
+    listOfDistrictRoads.emplace_back(districtRoads);
+
+//    for(auto red: districtGraph) {
+//        for(auto el: red) printf("%d ", el);
+//        printf("\n");
+//    }
+}
+
+void mstUnion(int t1, int t2, std::vector<int> &boss, std::vector<int> &rank) {
+    if(rank[t1] < rank[t2])
+        boss[t2] = t1;
+    else {
+        boss[t1] = t2;
+
+        if(rank[t1] == rank[t2])
+            rank[t1]++;
+    }
+
+}
+
+int mstFind(int town, std::vector<int> &boss) {
+    return (boss[town] == town ? town : (boss[town] = mstFind(boss[town], boss)));
+}
+
+int UF_find( int a, std::vector<int> &boss) {
+    int parent = boss[a];
+    if( parent != a )
+        boss[a] = UF_find( parent , boss); // path compression
+    return boss[a];
+}
+
+void UF_union( int rootA, int rootB,  std::vector<int> &boss, std::vector<int> &rank) {
+     }
+
+void kruskal(int towns, int dtowns, const std::vector<std::vector<std::tuple<int, int, int>>> &listOfDistrictRoads) {
+    std::vector<int> boss(towns);
+    std::vector<int> rank(towns, 0);
+
+    for(int i = 0; i < towns; i++)
+        boss[i] = i;
+
+    std::vector<int> districtMst(dtowns + 1, 0);
+
+    for(int i = 0; i <= dtowns; i++) {
+        for(const auto &road: listOfDistrictRoads[i]) {
+
+            int x = std::get<0>(road) - 1;
+            int y = std::get<1>(road) - 1;
+
+            int a=UF_find(x, boss);
+            int b=UF_find(y, boss);
+
+            if(a != b) {
+                districtMst[i] += std::get<2>(road);
+            }
+
+            if( rank[b] > rank[a] )
+                boss[a] = b;
+            else {
+                boss[b] = a;
+                if( rank[b] == rank[a] ) // change rank?
+                    rank[a]++;
+            }
+
+        }
+    }
+    int sum = 0;
+    for(int i = 0; i <= dtowns; i++) {
+        sum += districtMst[i];
+        printf("%d: mst = %d\n", i, districtMst[i]);
+    }
+    printf("\n\n%d", sum);
+
+}
+
+void x() {
+    int towns, dtowns, roads;
+
+    std::vector<std::list<std::pair<int, int>>> graph(0);
+
+    readData(towns, dtowns, roads, graph);
+
+    //SORTING TOWNS ACCORDING TO DISTRICTS
+    std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
+    bfsDistrictSort(towns, dtowns, graph, districts);
+
+    //PREPARATION FOR KRUSKAL
+    std::vector<std::vector<std::tuple<int, int, int>>> listOfDistrictRoads;
+    roadSort(towns, dtowns, graph, districts, listOfDistrictRoads);
+
+    //KRUSKAL
+
+    kruskal(towns, dtowns, listOfDistrictRoads);
 
 }
 
