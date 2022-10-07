@@ -501,6 +501,7 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
 
     constexpr int MAX_COST = 251;
     std::vector<std::vector<int>> districtGraph (dtowns, std::vector<int>(dtowns, MAX_COST));
+    std::vector<std::tuple<int, int, int>> districtConnections(0);
 
     for(int k = 0; k < dtowns; k++) {
 //        printf("Dtown = %d \n", k + 1);
@@ -516,10 +517,10 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
                     if(t <= dtowns) continue;
 
                     else if(districts[t - 1][0] != k + 1) {
-                        if(tp.second < districtGraph[districts[t - 1][0] - 1][k])
-                            districtGraph[districts[t - 1][0] - 1][k] = tp.second;
+                        if(tp.second < districtGraph[districts[t - 1][0] - 1][k]) {
+                            districtConnections.emplace_back(districts[t - 1][0], k + 1,tp.second);
+                        }
                     }
-
                     else if (!repetition[t - 1][i]) {
                         repetition[i][t - 1] = true;
                         districtRoads.emplace_back(i + 1, t, tp.second);
@@ -541,23 +542,21 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
         listOfDistrictRoads.emplace_back(districtRoads);
     }
 
-    std::vector<std::tuple<int, int, int>> districtRoads(0);
+//    for(int i = 0; i < dtowns; i++) {
+//        for(int j = 0; j < i; j++) {
+//            if(districtGraph[i][j] != MAX_COST)
+//                districtConnections.emplace_back(j + 1, i + 1, districtGraph[i][j]);
+//        }
+//    }
 
-    for(int i = 0; i < dtowns; i++) {
-        for(int j = 0; j < i; j++) {
-            if(districtGraph[i][j] != MAX_COST)
-                districtRoads.emplace_back(j + 1, i + 1, districtGraph[i][j]);
-        }
-    }
-
-    std::sort(districtRoads.begin(), districtRoads.end(),[](const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
+    std::sort(districtConnections.begin(), districtConnections.end(),[](const std::tuple<int, int, int> &x, const std::tuple<int, int, int> &y) {
         return std::get<2>(x) < std::get<2>(y);
     });
 
 //    for (auto el: districtRoads) { printf("%d %d %d \n", std::get<0>(el), std::get<1>(el), std::get<2>(el)); }
 //    printf("\n\n\n");
 
-    listOfDistrictRoads.emplace_back(districtRoads);
+    listOfDistrictRoads.emplace_back(districtConnections);
 
 //    for(auto red: districtGraph) {
 //        for(auto el: red) printf("%d ", el);
@@ -565,17 +564,7 @@ void roadSort(int towns, int dtowns, const std::vector<std::list<std::pair<int, 
 //    }
 }
 
-void mstUnion(int t1, int t2, std::vector<int> &boss, std::vector<int> &rank) {
-    if(rank[t1] < rank[t2])
-        boss[t2] = t1;
-    else {
-        boss[t1] = t2;
 
-        if(rank[t1] == rank[t2])
-            rank[t1]++;
-    }
-
-}
 
 int mstFind(int town, std::vector<int> &boss) {
     return (boss[town] == town ? town : (boss[town] = mstFind(boss[town], boss)));
@@ -635,18 +624,25 @@ void kruskal(int towns, int dtowns, const std::vector<std::vector<std::tuple<int
 void x() {
     int towns, dtowns, roads;
 
+    clock_t a, b,c, d;
+    a = clock();
+
     std::vector<std::list<std::pair<int, int>>> graph(0);
 
     readData(towns, dtowns, roads, graph);
+    b = clock();
+    printf("Ucitalo podatke %f\n\n", ((b - a) / 1000.));
 
     //SORTING TOWNS ACCORDING TO DISTRICTS
     std::vector<std::vector<int>> districts (towns, std::vector<int>(2, 0));
     bfsDistrictSort(towns, dtowns, graph, districts);
-
+    c= clock();
+    printf("Sortiralo %f \n\n",((c - b) / 1000.));
     //PREPARATION FOR KRUSKAL
     std::vector<std::vector<std::tuple<int, int, int>>> listOfDistrictRoads;
     roadSort(towns, dtowns, graph, districts, listOfDistrictRoads);
-
+    d=clock();
+    printf("Rasporedilo %f, \n\n", ((d - c) / 1000.));
     //KRUSKAL
 
     kruskal(towns, dtowns, listOfDistrictRoads);
@@ -654,7 +650,7 @@ void x() {
 }
 
 int main() {
-
+    printf("aaa");
     clock_t start, end;
     start = clock();
 
